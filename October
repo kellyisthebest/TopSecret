@@ -1,0 +1,60 @@
+import tensorflow as tf  #Tensor flow is an open-source library for deep learning applications
+from tensorflow import keras # Keras is a high-level neural network library
+from tensorflow.keras import layers #Layers
+
+# height = the range or veritcal dimention of the data grid e.g 128
+# width = the horizontal dimention of the data grid e.g 256
+# num_channels = number of our MIMO radar channels e.g 4 
+# given the exam0ples our grid size would be 128x256 pixels and four radar channels
+
+# Define the input shape for each radar channel
+input_shape = (height, width, num_channels)  # FOR THE RADAR
+
+# MISSING 
+# Step 1 : 
+# Make an other python (or another language e.g C) file to get the data readings in the first place
+# Step 2 :  
+# WE WILL HAVE TO PREPROCESS THE DATA IN SOME WAY 
+# This could be rearranging the reflected signals into something that this CNN can read (like an array or matrix)
+# all inputs will be converted into an array of numbers, can be of any dimention
+# https://www.tutorialspoint.com/keras/keras_layers.htm
+
+# Each input radar will be a MIMO radar, here we can  also specify the input data
+input_radar1 = keras.Input(shape=input_shape) #Defines an input layer 
+input_radar2 = keras.Input(shape=input_shape)
+input_radar3 = keras.Input(shape=input_shape)
+input_radar4 = keras.Input(shape=input_shape)
+
+# FOR CNN - Convolutional layers shared across all channels
+shared_conv1 = layers.Conv2D(32, kernel_size=(3, 3), activation='relu')
+shared_conv2 = layers.Conv2D(64, kernel_size=(3, 3), activation='relu')
+shared_pooling = layers.MaxPooling2D(pool_size=(2, 2))
+
+# LEARNING - Apply the shared convolutional layers to each radar input
+conv_radar1 = shared_pooling(shared_conv2(shared_conv1(input_radar1)))
+conv_radar2 = shared_pooling(shared_conv2(shared_conv1(input_radar2)))
+conv_radar3 = shared_pooling(shared_conv2(shared_conv1(input_radar3)))
+conv_radar4 = shared_pooling(shared_conv2(shared_conv1(input_radar4)))
+
+# LEARNING FROM OTHER CHANNELS - Concatenate the outputs from all radar channels
+merged = layers.Concatenate()([conv_radar1, conv_radar2, conv_radar3, conv_radar4])
+
+# Reccomended to add more layers, I would add them here
+
+
+# Additional layers (optional)
+# e.g., merged = layers.Flatten()(merged)
+# merged = layers.Dense(128, activation='relu')(merged)
+
+
+# Define the output layer for your task
+output = layers.Dense(num_classes, activation='softmax')(merged)  # Adjust for your problem
+
+# Create the model
+model = keras.Model(inputs=[input_radar1, input_radar2, input_radar3, input_radar4], outputs=output)
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Summary of the model architecture
+model.summary()
